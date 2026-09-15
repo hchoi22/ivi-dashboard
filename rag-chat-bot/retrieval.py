@@ -30,7 +30,7 @@ retriever = vector_store.as_retriever(
     search_kwargs={"k": 5, "score_threshold": 0.5},
 )
 results = retriever.invoke(
-    "What was the T002 trial's vaccine dose schedule?"
+    "What was the STUDY_A trial's vaccine dose schedule?"
 )
 
 print("RESULTS:")

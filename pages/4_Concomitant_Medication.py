@@ -113,10 +113,10 @@ else:
     )
     st.plotly_chart(fig, use_container_width=True)
 
-# SAE subjects on CM (T002 only)
-st.subheader("SAE Subjects on Concomitant Medication — T002")
+# SAE subjects on CM (STUDY_A only)
+st.subheader("SAE Subjects on Concomitant Medication — STUDY_A")
 st.caption(
-    "The ae domain exists only in T002, so this join is T002-only. "
+    "The ae domain exists only in STUDY_A, so this join is STUDY_A-only. "
     "A subject with no medications still appears with count 0."
 )
 
@@ -139,16 +139,16 @@ else:
         },
     )
 
-# T005 Medication Detail
-st.subheader("Medication Detail — T005")
+# STUDY_B Medication Detail
+st.subheader("Medication Detail — STUDY_B")
 
-t005_detail = run_query("cm-t005-detail")
+STUDY_B_detail = run_query("cm-STUDY_B-detail")
 
-if t005_detail.empty:
-    st.info("No CM records found for T005.")
+if STUDY_B_detail.empty:
+    st.info("No CM records found for STUDY_B.")
 else:
     st.dataframe(
-        t005_detail.reset_index(drop=True),
+        STUDY_B_detail.reset_index(drop=True),
         use_container_width=True,
         hide_index=True,
         column_config={
@@ -159,11 +159,11 @@ else:
         },
     )
 
-# Medication for suspected typhoid (T006)
-st.subheader("Medication Taken for Suspected Typhoid — T006")
+# Medication for suspected typhoid (STUDY_C)
+st.subheader("Medication Taken for Suspected Typhoid — STUDY_C")
 
 if typhoid.empty:
-    st.info("No T006 typhoid-medication screening answers found.")
+    st.info("No STUDY_C typhoid-medication screening answers found.")
 else:
     typhoid["response"] = typhoid["took_med"].map(
         {True: "Yes", False: "No"}

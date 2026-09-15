@@ -9,8 +9,8 @@ This chatbot answers questions about the IVI Vi-DT study documentation using ret
 ┌───────────────────────────────────────────────────────────────────────┐
 │                     1. Source Documents                               │
 │   • README files (synthetic dataset summaries)                        │
-│   • Research papers (T002, T005)                                │
-│   • Clinical Research Summary (T006)                                  │
+│   • Research papers (STUDY_A, STUDY_B)                                │
+│   • Clinical Research Summary (STUDY_C)                                  │
 └──────────────────────────────────┬────────────────────────────────────┘
                                     │
                                     ▼
@@ -70,4 +70,4 @@ A second limitation comes from relying on Gemini 3.6 Flash's free tier. The free
 
 ## 7. Data Provenance / Privacy Note
 
-The documents ingested into this pipeline are limited to README files describing synthetic dataset structure and published research papers for T002, T005, and T006. No subject-level data, raw clinical records, or real participant information is ingested into the vector database. This scope is intentional. If subject-level datasets are ever added to the ingestion path, this note and the privacy review behind it need to be revisited before that happens.
+The documents ingested into this pipeline are limited to README files describing synthetic dataset structure and published research papers for STUDY_A, STUDY_B, and STUDY_C. No subject-level data, raw clinical records, or real participant information is ingested into the vector database. This scope is intentional. If subject-level datasets are ever added to the ingestion path, this note and the privacy review behind it need to be revisited before that happens.

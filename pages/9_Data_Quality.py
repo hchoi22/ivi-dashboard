@@ -28,7 +28,7 @@ render_sidebar(current_page="Data Quality")
 st.title("Data Quality")
 st.caption(
     "Missingness, visit completeness, and flagged-value rates "
-    "across T002, T005, and T006."
+    "across STUDY_A, STUDY_B, and STUDY_C."
 )
 
 # KPI 1: Empty values per domain
@@ -72,7 +72,7 @@ if comp.empty:
     st.warning("No visit data found.")
 else:
     # expected visit counts per study are defined in the API query
-    # (T002: 13, T005/T006: 3); early terminations show as incomplete
+    # (STUDY_A: 13, STUDY_B/STUDY_C: 3); early terminations show as incomplete
     comp_long = comp.melt(
         id_vars="source_study",
         value_vars=["complete", "incomplete"],
@@ -104,7 +104,7 @@ with st.spinner("Loading lab flag rates..."):
 
 if flags.empty:
     st.info("No lab reference-range data found "
-            "(LB is collected in T002 only).")
+            "(LB is collected in STUDY_C only).")
 else:
     # one metric card per study that has LB data
     cols = st.columns(len(flags))

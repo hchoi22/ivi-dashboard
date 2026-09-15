@@ -42,7 +42,7 @@ IE_QUERY = """
 WITH target AS (
     SELECT CAST(%(study)s AS text) AS study_code
     ),
-    t002_rows AS (
+    STUDY_A_rows AS (
         SELECT i.subject_key,
             'OVERALL' AS category,
             CAST(NULL AS text) AS criterion_id,
@@ -50,16 +50,16 @@ WITH target AS (
             i.value AS answer,
             i.visitnum
         FROM ie AS i
-        WHERE i.source_study = 'T002' AND i.standard_var = 'IEORRES'
+        WHERE i.source_study = 'STUDY_A' AND i.standard_var = 'IEORRES'
     ),
-    t002_reasons AS (
+    STUDY_A_reasons AS (
         SELECT i.subject_key, i.value AS reason
         FROM ie AS i
-        WHERE i.source_study = 'T002'
+        WHERE i.source_study = 'STUDY_A'
         AND i.standard_var = 'SUPPIE'
         AND i.standard_label = 'Screening Failure Reason'
     ),
-    t005_pivot AS (
+    STUDY_B_pivot AS (
         SELECT i.subject_key, i.seqnum,
             MAX(
                 CASE WHEN i.standard_var = 'IECAT'
@@ -83,17 +83,17 @@ WITH target AS (
             ) AS answer,
             MAX(i.visitnum) AS visitnum
         FROM ie AS i
-        WHERE i.source_study = 'T005'
+        WHERE i.source_study = 'STUDY_B'
         AND i.standard_var IN ('IECAT', 'IETESTCD', 'IETEST', 'IEORRES')
         GROUP BY i.subject_key, i.seqnum
     ),
-    t005_rows AS (
+    STUDY_B_rows AS (
         SELECT subject_key, category, criterion_id,
             criterion, answer, visitnum
-        FROM t005_pivot
+        FROM STUDY_B_pivot
         WHERE criterion_id IS NOT NULL
     ),
-    t006_rows AS (
+    STUDY_C_rows AS (
         SELECT i.subject_key,
             CASE
                 WHEN i.standard_label LIKE '%%immunized with any typhoid%%'
@@ -107,18 +107,18 @@ WITH target AS (
                 ELSE i.value END AS answer,
             i.visitnum
         FROM ie AS i
-        WHERE i.source_study = 'T006'
+        WHERE i.source_study = 'STUDY_C'
             AND i.standard_var = 'IETEST'
     ),
     all_rows AS (
-        SELECT * FROM t002_rows
-        WHERE EXISTS (SELECT 1 FROM target WHERE study_code = 'T002')
+        SELECT * FROM STUDY_A_rows
+        WHERE EXISTS (SELECT 1 FROM target WHERE study_code = 'STUDY_A')
         UNION ALL
-        SELECT * FROM t005_rows
-        WHERE EXISTS (SELECT 1 FROM target WHERE study_code = 'T005')
+        SELECT * FROM STUDY_B_rows
+        WHERE EXISTS (SELECT 1 FROM target WHERE study_code = 'STUDY_B')
         UNION ALL
-        SELECT * FROM t006_rows
-        WHERE EXISTS (SELECT 1 FROM target WHERE study_code = 'T006')
+        SELECT * FROM STUDY_C_rows
+        WHERE EXISTS (SELECT 1 FROM target WHERE study_code = 'STUDY_C')
 )
 SELECT s.subjid, s.scrno,
     a.category, a.criterion, a.answer,
@@ -131,7 +131,7 @@ SELECT s.subjid, s.scrno,
 FROM all_rows AS a
 JOIN subjects AS s
     ON s.subject_key = a.subject_key
-LEFT JOIN t002_reasons AS r
+LEFT JOIN STUDY_A_reasons AS r
     ON r.subject_key = a.subject_key
 ORDER BY s.subjid, a.category DESC,
 a.criterion_id NULLS LAST, a.visitnum;
@@ -168,34 +168,36 @@ def health():
 
 # Page 2: Physical Examination Page
 PE_ABNORMAL_QUERY = """
-WITH t002 AS (
-  SELECT subject_key, seqnum, visitnum,
-         MAX(CASE WHEN standard_var = 'PETEST'  THEN value END) AS body_system,
-         MAX(CASE WHEN standard_var = 'PEORRES' THEN value END) AS result
-  FROM pe
-  WHERE source_study = 'T002'
-  GROUP BY subject_key, seqnum, visitnum
-),
-t506 AS (
-  SELECT source_study, subject_key, visitnum,
-         CASE source_study
-           WHEN 'T005' THEN substring(standard_label from '<([^>]+)>')
-           WHEN 'T006' THEN standard_label
-         END AS body_system,
-         value AS result
-  FROM pe
-  WHERE source_study IN ('T005', 'T006')
-    AND standard_var = 'PEORRES'
-),
-abnormal AS (
-  SELECT 'T002' AS source_study, subject_key, visitnum, body_system
-  FROM t002
-  WHERE result = 'Abnormal'
-  UNION ALL
-  SELECT source_study, subject_key, visitnum, body_system
-  FROM t506
-  WHERE result = 'Abnormal'
-)
+WITH STUDY_A AS (
+    SELECT subject_key, seqnum, visitnum,
+            MAX(CASE WHEN standard_var = 'PETEST'  THEN value END)
+                AS body_system,
+            MAX(CASE WHEN standard_var = 'PEORRES' THEN value END)
+                AS result
+    FROM pe
+    WHERE source_study = 'STUDY_A'
+    GROUP BY subject_key, seqnum, visitnum
+    ),
+    STUDY_BC AS (
+        SELECT source_study, subject_key, visitnum,
+                CASE source_study
+                WHEN 'STUDY_B' THEN substring(standard_label from '<([^>]+)>')
+                WHEN 'STUDY_C' THEN standard_label
+                END AS body_system,
+                value AS result
+        FROM pe
+        WHERE source_study IN ('STUDY_B', 'STUDY_C')
+            AND standard_var = 'PEORRES'
+    ),
+    abnormal AS (
+        SELECT 'STUDY_A' AS source_study, subject_key, visitnum, body_system
+        FROM STUDY_A
+        WHERE result = 'Abnormal'
+        UNION ALL
+        SELECT source_study, subject_key, visitnum, body_system
+        FROM STUDY_BC
+        WHERE result = 'Abnormal'
+    )
 SELECT source_study, visitnum,
        string_agg(DISTINCT body_system, ', '
        ORDER BY body_system) AS abnormal_systems,
@@ -275,18 +277,18 @@ MH_ONSET_QUERY = """
         SELECT source_study, subject_key, seqnum, value AS start_raw
         FROM mh
         WHERE standard_var = 'MHSTDTC'
-        AND source_study IN ('T002', 'T005', 'T006')
+        AND source_study IN ('STUDY_A', 'STUDY_B', 'STUDY_C')
     ),
     terms AS (
         SELECT source_study, subject_key, seqnum, visitnum,
             CASE
-                WHEN source_study = 'T002'
+                WHEN source_study = 'STUDY_A'
                 THEN value
                 ELSE standard_label
             END AS term
         FROM mh
         WHERE standard_var = 'MHTERM'
-        AND source_study IN ('T002', 'T005', 'T006')
+        AND source_study IN ('STUDY_A', 'STUDY_B', 'STUDY_C')
     )
     SELECT t.source_study, s.subjid,
         COALESCE(substring(s.subjid FROM 'SYN-[0-9]+$'), s.subjid)
@@ -373,7 +375,7 @@ CM_TYPHOID_MED_QUERY = """
         SELECT subject_key,
             BOOL_OR(value IN ('Y', 'Yes', '1')) AS took_med
         FROM cm
-        WHERE source_study = 'T006' AND standard_var = 'CMYN'
+        WHERE source_study = 'STUDY_C' AND standard_var = 'CMYN'
         GROUP BY subject_key
     ) AS s
     GROUP BY took_med
@@ -418,18 +420,18 @@ CM_TYPHOID_MED_LIST_QUERY = """
         COUNT(DISTINCT c.value) AS n_meds
     FROM cm AS c
     JOIN subjects AS s ON s.subject_key = c.subject_key
-    WHERE c.source_study = 'T006' AND c.standard_var = 'CMTRT'
+    WHERE c.source_study = 'STUDY_C' AND c.standard_var = 'CMTRT'
     GROUP BY s.subjid
     ORDER BY s.subjid;
 """
 
-CM_T005_DETAIL_QUERY = """
+CM_STUDY_B_DETAIL_QUERY = """
     WITH meds AS (
         SELECT subject_key,
             STRING_AGG(DISTINCT value, ', ' ORDER BY value) AS medications,
             COUNT(DISTINCT value) AS n_meds
         FROM cm
-        WHERE source_study = 'T005' AND standard_var = 'CMTRT'
+        WHERE source_study = 'STUDY_B' AND standard_var = 'CMTRT'
         GROUP BY subject_key
     ),
     screen AS (
@@ -437,7 +439,7 @@ CM_T005_DETAIL_QUERY = """
             BOOL_OR(value IN ('Y', 'Yes', '1')) AS answered_yes,
             BOOL_OR(value IN ('N', 'No', '2')) AS answered_no
         FROM cm
-        WHERE source_study = 'T005' AND standard_var = 'CMYN'
+        WHERE source_study = 'STUDY_B' AND standard_var = 'CMYN'
         GROUP BY subject_key
     )
     SELECT s.subjid,
@@ -454,15 +456,15 @@ CM_T005_DETAIL_QUERY = """
         ON m.subject_key = s.subject_key
     LEFT JOIN screen AS sc
         ON sc.subject_key = s.subject_key
-    WHERE s.source_study = 'T005'
+    WHERE s.source_study = 'STUDY_B'
         AND (m.n_meds > 0 OR sc.answered_yes OR sc.answered_no)
     ORDER BY s.subjid;
 """
 
 
-@app.get("/cm-t005-detail")
-def cm_t005_detail():
-    return run_sql(CM_T005_DETAIL_QUERY)
+@app.get("/cm-STUDY_B-detail")
+def cm_STUDY_B_detail():
+    return run_sql(CM_STUDY_B_DETAIL_QUERY)
 
 
 @app.get("/cm-typhoid-med-list")
@@ -500,7 +502,7 @@ VS_QUERY = r"""
     WITH target AS (
         SELECT CAST(%(study)s AS text) AS study_code
         ),
-        t2_tests AS (
+        STUDY_A_tests AS (
             SELECT subject_key, visitnum,
                 value AS test_name,
                 ROW_NUMBER() OVER (
@@ -508,10 +510,10 @@ VS_QUERY = r"""
                     ORDER BY fact_id
                 ) AS rn
             FROM vs
-            WHERE source_study = 'T002'
+            WHERE source_study = 'STUDY_A'
                 AND standard_var = 'VSTEST'
         ),
-        t2_results AS (
+        STUDY_A_results AS (
             SELECT subject_key, visitnum,
                 value AS result,
                 ROW_NUMBER() OVER (
@@ -519,10 +521,10 @@ VS_QUERY = r"""
                     ORDER BY fact_id
                 ) AS rn
             FROM vs
-            WHERE source_study = 'T002'
+            WHERE source_study = 'STUDY_A'
                 AND standard_var = 'VSORRES'
         ),
-        t2_units AS (
+        STUDY_A_units AS (
             SELECT subject_key, visitnum,
                 value AS unit,
                 ROW_NUMBER() OVER (
@@ -530,18 +532,18 @@ VS_QUERY = r"""
                     ORDER BY fact_id
                 ) AS rn
             FROM vs
-            WHERE source_study = 'T002'
+            WHERE source_study = 'STUDY_A'
                 AND standard_var = 'VSORRESU'
         ),
-        t002_measurements AS (
-            SELECT 'T002' AS source_study, r.subject_key, r.visitnum,
+        STUDY_A_measurements AS (
+            SELECT 'STUDY_A' AS source_study, r.subject_key, r.visitnum,
                 t.test_name, r.result, u.unit
-            FROM t2_results AS r
-            JOIN t2_tests AS t
+            FROM STUDY_A_results AS r
+            JOIN STUDY_A_tests AS t
                 ON t.subject_key = r.subject_key
                 AND t.visitnum IS NOT DISTINCT FROM r.visitnum
                 AND t.rn = r.rn
-            LEFT JOIN t2_units AS u
+            LEFT JOIN STUDY_A_units AS u
                 ON u.subject_key = r.subject_key
                 AND u.visitnum IS NOT DISTINCT FROM r.visitnum
                 AND u.rn = r.rn
@@ -549,10 +551,10 @@ VS_QUERY = r"""
                 SELECT 1
                 FROM target
                 WHERE study_code IS NULL
-                    OR study_code = 'T002'
+                    OR study_code = 'STUDY_A'
             )
         ),
-        t56_measurements AS (
+        STUDY_BC_measurements AS (
             SELECT v.source_study, v.subject_key, v.visitnum,
                 v.standard_label AS test_name,
                 v.value AS result,
@@ -568,7 +570,7 @@ VS_QUERY = r"""
                 AND u.standard_var = 'VSORRESU'
                 AND UPPER(REGEXP_REPLACE(u.standard_label,
                     '\s+unit$', '', 'i')) = UPPER(v.standard_label)
-            WHERE v.source_study IN ('T005', 'T006')
+            WHERE v.source_study IN ('STUDY_B', 'STUDY_C')
                 AND v.standard_var = 'VSORRES'
                 AND EXISTS (
                     SELECT 1
@@ -577,9 +579,9 @@ VS_QUERY = r"""
                 )
         ),
         all_measurements AS (
-            SELECT * FROM t002_measurements
+            SELECT * FROM STUDY_A_measurements
             UNION ALL
-            SELECT * FROM t56_measurements
+            SELECT * FROM STUDY_BC_measurements
         ),
         labeled AS (
             SELECT *,
@@ -618,7 +620,7 @@ SELECT
 FROM dm
 JOIN subjects AS sj
     ON dm.subject_key = sj.subject_key
-WHERE dm.source_study = 'T002'
+WHERE dm.source_study = 'STUDY_A'
     AND sj.subjid = %(subjid)s
 GROUP BY sj.subjid;
 """
@@ -742,7 +744,7 @@ WITH doses AS (
                             THEN e.value END), 'DD/MON/YYYY')
                AS dose_date
     FROM ex AS e
-    WHERE e.source_study = 'T002' AND e.visitnum IN (2, 6, 11)
+    WHERE e.source_study = 'STUDY_A' AND e.visitnum IN (2, 6, 11)
     GROUP BY e.subject_key, e.seqnum, e.visitnum
 ),
 windows AS (
@@ -759,7 +761,7 @@ ae_starts AS (
                             THEN a.value END), 'DD/MON/YYYY')
                AS ae_start
     FROM ae AS a
-    WHERE a.source_study = 'T002'
+    WHERE a.source_study = 'STUDY_A'
       AND NOT EXISTS (
           SELECT 1 FROM ae AS r
           WHERE r.subject_key = a.subject_key
@@ -837,40 +839,42 @@ def enrolled_count(study: str = Query(...)):
 
 # Page 8: Subject Trace Query
 LINKAGE_QUERY = """
-    SELECT s2.subject_key AS t002_subject_key, s2.subjid AS t002_subjid
-    FROM subjects s2
-    JOIN subjects s6
-        ON s6.source_study = 'T006'
-        AND substring(s6.subjid FROM 'SYN-\\d+$')
-            = substring(s2.subjid FROM 'SYN-\\d+$')
-    WHERE s2.source_study = 'T002'
-    ORDER BY s2.subjid
+    SELECT sA.subject_key AS STUDY_A_subject_key, sA.subjid AS STUDY_A_subjid
+    FROM subjects sA
+    JOIN subjects sC
+        ON sC.source_study = 'STUDY_C'
+        AND substring(sC.subjid FROM 'SYN-\\d+$')
+            = substring(sA.subjid FROM 'SYN-\\d+$')
+    WHERE sA.source_study = 'STUDY_A'
+    ORDER BY sA.subjid
 """
 
 # Using the linkage, creating a profile table per participant
 # about their dosing and their adverse event records.
 PROFILE_QUERY = """
     WITH linkage_subject AS (
-        SELECT s2.subject_key AS s2_sk, s6.subject_key AS s6_sk,
-                s6.record_id
-        FROM subjects AS s2
-        JOIN subjects AS s6
-            ON s6.source_study = 'T006'
-            AND substring(s6.subjid FROM 'SYN-\\d+$')
-                = substring(s2.subjid FROM 'SYN-\\d+$')
-        WHERE s2.source_study = 'T002' AND s2.subjid = %(subjid)s
+        SELECT sA.subject_key AS sA_sk, sC.subject_key AS sC_sk,
+                sC.record_id
+        FROM subjects AS sA
+        JOIN subjects AS sC
+            ON sC.source_study = 'STUDY_C'
+            AND substring(sC.subjid FROM 'SYN-\\d+$')
+                = substring(sA.subjid FROM 'SYN-\\d+$')
+        WHERE sA.source_study = 'STUDY_A' AND sA.subjid = %(subjid)s
     ),
     dosing AS (
         SELECT e.subject_key,
-            CASE e.visitnum WHEN 2 THEN 1 WHEN 6 THEN 2
-                                WHEN 11 THEN 3 END AS dose_n,
+            CASE e.visitnum
+                WHEN 2 THEN 1
+                WHEN 6 THEN 2
+                WHEN 11 THEN 3 END AS dose_n,
             TO_DATE(MAX(CASE WHEN e.standard_var = 'EXSTDTC'
                                 THEN e.value END), 'DD/MON/YYYY')
                 AS dose_date,
             MAX(CASE WHEN e.standard_var = 'EXTRT'
                         THEN e.value END) AS treatment
         FROM ex AS e
-        WHERE e.source_study = 'T002'
+        WHERE e.source_study = 'STUDY_A'
         GROUP BY e.subject_key, e.seqnum, e.visitnum
     ),
     ae_events AS (
@@ -887,7 +891,7 @@ PROFILE_QUERY = """
             MAX(CASE WHEN standard_var = 'AESER' THEN value END)
                 AS serious
         FROM ae
-        WHERE source_study = 'T002'
+        WHERE source_study = 'STUDY_A'
         GROUP BY subject_key, seqnum
     ),
     ae_summary AS (
@@ -904,7 +908,7 @@ PROFILE_QUERY = """
         FROM ae_events
         GROUP BY subject_key
     )
-    SELECT l.s2_sk AS t002_subject_key, l.s6_sk AS t006_subject_key,
+    SELECT l.sA_sk AS STUDY_A_subject_key, l.sC_sk AS STUDY_C_subject_key,
         l.record_id,
         MAX(CASE WHEN d.dose_n = 1 THEN d.dose_date END)
             AS dose_1_date,
@@ -917,10 +921,10 @@ PROFILE_QUERY = """
         a.ae_list
     FROM linkage_subject AS l
     LEFT JOIN dosing AS d
-        ON d.subject_key = l.s2_sk
+        ON d.subject_key = l.sA_sk
     LEFT JOIN ae_summary AS a
-        ON a.subject_key = l.s2_sk
-    GROUP BY l.s2_sk, l.s6_sk, l.record_id,
+        ON a.subject_key = l.sA_sk
+    GROUP BY l.sA_sk, l.sC_sk, l.record_id,
         a.ae_count, a.sae_count, a.ae_list
 """
 
@@ -937,7 +941,7 @@ EVENTS_QUERY = """
             CAST(NULL AS text) AS detail
         FROM ex AS e
         JOIN subjects AS s ON s.subject_key = e.subject_key
-        WHERE e.source_study = 'T002'
+        WHERE e.source_study = 'STUDY_A'
         AND s.subjid = %(subjid)s
         AND e.visitnum IN (2, 6, 11)
         GROUP BY e.subject_key, e.seqnum, e.visitnum
@@ -956,7 +960,7 @@ EVENTS_QUERY = """
                         THEN ' [SAE]' ELSE '' END AS detail
         FROM ae AS a
         JOIN subjects AS s ON s.subject_key = a.subject_key
-        WHERE a.source_study = 'T002'
+        WHERE a.source_study = 'STUDY_A'
         AND s.subjid = %(subjid)s
         GROUP BY a.subject_key, a.seqnum
     )
@@ -1056,9 +1060,9 @@ DQ_MISSINGNESS_QUERY = """
 # expected schedule.
 DQ_VISIT_COMPLETENESS_QUERY = """
     WITH expected AS (
-            SELECT 'T002' AS source_study, 13 AS expected_visits
-            UNION ALL SELECT 'T005', 3
-            UNION ALL SELECT 'T006', 3
+            SELECT 'STUDY_A' AS source_study, 13 AS expected_visits
+            UNION ALL SELECT 'STUDY_B', 3
+            UNION ALL SELECT 'STUDY_C', 3
         ),
         visits AS (
             SELECT source_study, subject_key, visitnum

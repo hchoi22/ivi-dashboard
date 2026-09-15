@@ -2,7 +2,7 @@
 Haechan Choi
 IVI Data Sceince & Innovations
 This program uses utilizes synthetic clinical data from Vi-DT
-T005 study and transforms its horizontal data structure to a
+STUDY_B study and transforms its horizontal data structure to a
 vertical data structure.
 """
 import sys
@@ -28,10 +28,10 @@ def read_csv_any_encoding(path: str) -> pd.DataFrame:
 
 
 # loading the clinical mapping file and the necessary columns
-# to match with the T005
+# to match with the STUDY_B
 def load_dictionary(dict_path: str) -> pd.DataFrame:
     """
-    Load the T005 crosswalk from the dictionary CSV.
+    Load the STUDY_B crosswalk from the dictionary CSV.
     """
 
     # loads the raw dictionary csv into a dataframe
@@ -39,10 +39,10 @@ def load_dictionary(dict_path: str) -> pd.DataFrame:
 
     # extracting only the columns that we need fro the dictionary
     # keeping only the columns in the dictonary that we need
-    # also disregarding the rows with NA values in T005_VAR (We don't need)
+    # also disregarding the rows with NA values in STUDY_B_VAR (We don't need)
     keep_cols = ["Standard_Domain", "Standard_VAR", "Standard_LABEL",
-                 "T005_FORM", "T005_VAR"]
-    out = dict_df[keep_cols].dropna(subset=["T005_VAR"]).copy()
+                 "STUDY_B_FORM", "STUDY_B_VAR"]
+    out = dict_df[keep_cols].dropna(subset=["STUDY_B_VAR"]).copy()
 
     # redesigning the initial columns in the new table
     out.columns = ["Standard_Domain", "Standard_VAR", "Standard_LABEL",
@@ -245,7 +245,7 @@ def process_study(dict_path: str, source_path: str, output_path: str):
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print("Usage: python t005_htov.py "
+        print("Usage: python STUDY_B_htov.py "
               "<dict_csv> <source_xlsx> <output_xlsx>")
         sys.exit(1)
     process_study(sys.argv[1], sys.argv[2], sys.argv[3])

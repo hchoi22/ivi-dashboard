@@ -2,13 +2,13 @@
 Haechan Choi
 IVI Data Sceince & Innovations
 This program uses utilizes synthetic clinical data from Vi-DT
-T002 study and transforms its horizontal data structure to a
+STUDY_A study and transforms its horizontal data structure to a
 vertical data structure.
 """
 import sys
 import pandas as pd
 
-STUDY_PREFIX = "T002"
+STUDY_PREFIX = "STUDY_A"
 
 # not in data dictionary so need extra mapping
 IE_EXTRA_MAPPINGS = pd.DataFrame([
@@ -36,10 +36,10 @@ def read_csv_any_encoding(path: str) -> pd.DataFrame:
 
 
 # loading the clinical mapping file and the necessary columns
-# to match with the T002
+# to match with the STUDY_A
 def load_dictionary(dic_path: str, study_prefix: str) -> pd.DataFrame:
     '''
-    Load the T002 crosswalk from the dictionary CSV.
+    Load the STUDY_A crosswalk from the dictionary CSV.
     '''
 
     # loads the raw dictionary csv into a dataframe
@@ -65,7 +65,8 @@ def load_dictionary(dic_path: str, study_prefix: str) -> pd.DataFrame:
 
     # extracting only the columns that we need fro the dictionary
     # keeping only the columns in the dictonary that we need
-    # also disregarding the rows with NA values in T002_VAR (We don't need)
+    # also disregarding the rows with NA values in STUDY_A_VAR
+    # (We don't need)
     out = pd.DataFrame({
         "Standard_Domain": dict_df["Standard_Domain"],
         "Standard_VAR": dict_df["Standard_VAR"],
@@ -135,7 +136,7 @@ def build_domain_eav_from_sheet(source_df: pd.DataFrame, domain: str,
     has_scrno = "scrno" in source_df.columns
 
     # assign seqnum to every mapped IE row
-    # T002 just checks for eligbility
+    # STUDY_A just checks for eligbility
     if domain == "IE":
         mapped_vars = set(domain_map_for_sheet["SOURCE_VAR"])
         ie_col_seq = {
@@ -369,7 +370,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 4:
         print(
             "Usage:"
-            "python t002_htov.py <dict_csv> <source_xlsx> <output_xlsx>"
+            "python STUDY_A_htov.py <dict_csv> <source_xlsx> <output_xlsx>"
         )
         sys.exit(1)
     process_study(sys.argv[1], sys.argv[2], sys.argv[3])

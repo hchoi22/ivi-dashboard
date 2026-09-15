@@ -46,7 +46,7 @@ else:
     st.plotly_chart(fig, use_container_width=True)
 
     cols = st.columns(3)
-    for col, study in zip(cols, ["T002", "T005", "T006"]):
+    for col, study in zip(cols, ["STUDY_A", "STUDY_B", "STUDY_C"]):
         sub = df[df["source_study"] == study]
         if sub.empty:
             continue

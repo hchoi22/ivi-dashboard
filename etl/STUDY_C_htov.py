@@ -2,7 +2,7 @@
 Haechan Choi
 IVI Data Sceince & Innovations
 This program uses utilizes synthetic clinical data from Vi-DT
-T006 study and transforms its horizontal data structure to a
+STUDY_C study and transforms its horizontal data structure to a
 vertical data structure.
 """
 import sys
@@ -54,10 +54,10 @@ VISITNUM_MAP = {
 # sheets that don't follow the standard dictionary mapping
 # are hand-mapped here instead
 MANUAL_SHEET_MAPPINGS = {
-    "t002_t006_linkage": {
-        "t006_record_id": ("DM", "DMSPID",  "T006 Record ID"),
-        "t006_subjid": ("DM", "SUBJID",  "T006 Subject ID"),
-        "t002_subjid": ("DM", "SUBJID",  "T002 Subject ID"),
+    "STUDY_A_STUDY_C_linkage": {
+        "STUDY_C_record_id": ("DM", "DMSPID", "STUDY_C Record ID"),
+        "STUDY_C_subjid": ("DM", "SUBJID", "STUDY_C Subject ID"),
+        "STUDY_A_subjid": ("DM", "SUBJID",  "STUDY_A Subject ID"),
         "pre_id": ("DM", "SUPPDM",  "Previous Subject Identifier"),
         "link_status": ("DM", "SUPPDM",  "Link Status"),
         "pre_vg": ("DM", "SUPPDM",  "Previously Assigned Vaccine Group"),
@@ -68,7 +68,7 @@ MANUAL_SHEET_MAPPINGS = {
 
 # which column(s) identify a subject/row within the manual sheet
 MANUAL_SHEET_ID_COLUMNS = {
-    "t002_t006_linkage": ("t006_subjid", "t006_record_id"),
+    "STUDY_A_STUDY_C_linkage": ("STUDY_C_subjid", "STUDY_C_record_id"),
 }
 
 
@@ -84,22 +84,22 @@ def read_csv_any_encoding(path):
 
 
 # loading the clinical mapping file and the necessary columns
-# to match with T006
-def load_t006_dictionary(path):
+# to match with STUDY_C
+def load_STUDY_C_dictionary(path):
     '''
-    Load the T006 crosswalk from the dictionary CSV
+    Load the STUDY_C crosswalk from the dictionary CSV
     '''
 
     raw = read_csv_any_encoding(path)
     required = ["Standard_Domain", "Standard_VAR", "Standard_LABEL",
-                "T006_FORM", "T006_VAR"]
+                "STUDY_C_FORM", "STUDY_C_VAR"]
 
     missing = [c for c in required if c not in raw.columns]
 
     if missing:
         raise ValueError(f"Mapping file is missing columns: {missing}")
 
-    mapping = raw[required].dropna(subset=["T006_VAR"]).copy()
+    mapping = raw[required].dropna(subset=["STUDY_C_VAR"]).copy()
     mapping.columns = ["Domain", "Standard_VAR", "Standard_LABEL",
                        "Source_Form", "Source_Var"]
 
@@ -455,14 +455,14 @@ def choose_data_sheet(xls):
     return candidates[0]
 
 
-def process_t006(dict_path, source_path, output_path):
+def process_STUDY_C(dict_path, source_path, output_path):
     '''
-    Processing the T006 REDCap export end-to-end: load the dictionary,
+    Processing the STUDY_C REDCap export end-to-end: load the dictionary,
     melt scalar/positional/manual sheets into EAV rows per domain, and
     write the combined result to one Excel workbook.
     '''
 
-    mapping = load_t006_dictionary(dict_path)
+    mapping = load_STUDY_C_dictionary(dict_path)
     xls = pd.ExcelFile(source_path)
     data_sheet = choose_data_sheet(xls)
     df = xls.parse(data_sheet)
@@ -552,8 +552,8 @@ def process_t006(dict_path, source_path, output_path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        print("Usage: python t006_vtov_fixed.py"
+        print("Usage: python STUDY_C_vtov_fixed.py"
               "Clinical_Mapping_T00-Dict-0818.csv"
-              "IVI_T006_Dummy-data.xlsx T006_EAV_output.xlsx")
+              "IVI_STUDY_C_Dummy-data.xlsx STUDY_C_EAV_output.xlsx")
         sys.exit(1)
-    process_t006(sys.argv[1], sys.argv[2], sys.argv[3])
+    process_STUDY_C(sys.argv[1], sys.argv[2], sys.argv[3])

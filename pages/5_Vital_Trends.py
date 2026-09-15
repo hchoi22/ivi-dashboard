@@ -29,7 +29,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-study = st.selectbox("Study", ["T002", "T005", "T006"])
+study = st.selectbox("Study", ["STUDY_A", "STUDY_B", "STUDY_C"])
 
 with st.spinner("Loading vital sign data..."):
     df = run_query("vital-trends", {"study": study})

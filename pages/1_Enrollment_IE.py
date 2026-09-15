@@ -20,13 +20,13 @@ def render_funnel() -> None:
     STAGES = ["Screened", "Passed Inclusion", "Passed Exclusion", "Enrolled"]
     rows = []
 
-    for study in ["T002", "T005", "T006"]:
+    for study in ["STUDY_A", "STUDY_B", "STUDY_C"]:
         df = run_query("eligibility", {"study": study})
 
         if df.empty:
             continue
 
-        if study == "T002":
+        if study == "STUDY_A":
             id_col = "scrno"
         else:
             id_col = "subjid"
@@ -74,7 +74,7 @@ render_sidebar(current_page="Enrollment & Eligibility")
 st.title("Enrollment & Eligibility")
 require_auth()
 
-STUDIES = ["T002", "T005", "T006"]
+STUDIES = ["STUDY_A", "STUDY_B", "STUDY_C"]
 
 with st.spinner("Loading data..."):
     elig_by_study = {
@@ -152,13 +152,13 @@ def render_cell(col, study, cat, label):
     )
 
 
-# Row 1: overall (T002) and inclusion (T005, T006)
+# Row 1: overall (STUDY_A) and inclusion (STUDY_B, STUDY_C)
 row1 = st.columns(3)
-render_cell(row1[0], "T002", "OVERALL", "Overall Eligibility by Visit")
-render_cell(row1[1], "T005", "INCLUSION", "Inclusion Criteria")
-render_cell(row1[2], "T006", "INCLUSION", "Inclusion Criteria")
+render_cell(row1[0], "STUDY_A", "OVERALL", "Overall Eligibility by Visit")
+render_cell(row1[1], "STUDY_B", "INCLUSION", "Inclusion Criteria")
+render_cell(row1[2], "STUDY_C", "INCLUSION", "Inclusion Criteria")
 
 # Row 2: exclusions; first cell intentionally left empty for alignment
 row2 = st.columns(3)
-render_cell(row2[1], "T005", "EXCLUSION", "Exclusion Criteria")
-render_cell(row2[2], "T006", "EXCLUSION", "Exclusion Criteria")
+render_cell(row2[1], "STUDY_B", "EXCLUSION", "Exclusion Criteria")
+render_cell(row2[2], "STUDY_C", "EXCLUSION", "Exclusion Criteria")

@@ -32,7 +32,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-study = st.selectbox("Study", ["T002", "T005", "T006"])
+study = st.selectbox("Study", ["STUDY_A", "STUDY_B", "STUDY_C"])
 
 with st.spinner("Loading AE data..."):
     ae_by_subject = run_query(
@@ -48,7 +48,7 @@ with st.spinner("Loading AE data..."):
         {"study": study}
     )
     dose_kpi = (
-        run_query("ae-dose-response") if study == "T002"
+        run_query("ae-dose-response") if study == "STUDY_A"
         else pd.DataFrame()
     )
 
@@ -71,7 +71,7 @@ else:
     col3.metric("Total AE count", int(ae_by_subject["num_ae"].sum()))
     col4.metric("Total SAE count", int(ae_by_subject["num_sae"].sum()))
 
-    if study == "T002" and not dose_kpi.empty:
+    if study == "STUDY_A" and not dose_kpi.empty:
         dcols = st.columns(len(dose_kpi))
         for col, (_, r) in zip(dcols, dose_kpi.iterrows()):
             col.markdown(f"**Dose {int(r['dose_n'])}**")

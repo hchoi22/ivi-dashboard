@@ -36,7 +36,7 @@ RESPONSE_COLORS = {
     "No": "#d62728",
     "Don't Know": "#7f7f7f",
 }
-STUDIES = ["T002", "T005", "T006"]
+STUDIES = ["STUDY_A", "STUDY_B", "STUDY_C"]
 
 with st.spinner("Loading medical history data..."):
     coverage = run_query("mh-coverage")
@@ -110,7 +110,7 @@ else:
 st.subheader("Symptom Onset Timeline — All Studies")
 st.caption(
     "One point per reported episode. Subjects are linked across "
-    "T002 and T006 by their shared SYN identifier, so all episodes "
+    "STUDY_A and STUDY_B by their shared SYN identifier, so all episodes "
     "for the same person appear on one line."
 )
 

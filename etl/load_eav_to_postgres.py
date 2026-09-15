@@ -17,9 +17,9 @@ DB_CONFIG = {
 
 # EAV workbooks produced by each study's *_htov.py script
 FILES = {
-    "T002": "T002_EAV_output.xlsx",
-    "T005": "T005_EAV_output.xlsx",
-    "T006": "T006_EAV_output.xlsx",
+    "STUDY_A": "STUDY_A_EAV_output.xlsx",
+    "STUDY_B": "STUDY_B_EAV_output.xlsx",
+    "STUDY_C": "STUDY_C_EAV_output.xlsx",
 }
 
 # Maps the sheet name found inside each Excel file to the Postgres
@@ -42,10 +42,11 @@ SHEET_TO_TABLE = {
     "EX": "ex",
     "AE": "ae",
     "LB": "lb",
-    "identifier": None,  # T005 dictionary artifact
+    "identifier": None,  # STUDY_B dictionary artifact
 }
 
-# Column names differ slightly between T002/T005 and T006's annotated
+# Column names differ slightly between STUDY_A/STUDY_B
+# and STUDY_C's annotated
 # output (StandardVAR vs Standard_VAR, etc).
 COLUMN_ALIASES = {
     "studyid": "studyid", "STUDYID": "studyid",
@@ -140,7 +141,7 @@ def get_or_create_subject_key(conn, source_study,
         if result:
             return result[0]
 
-    # Fall back to record_id (T006's reliable per-subject key
+    # Fall back to record_id (STUDY_C's reliable per-subject key
     # across all visits)
     if record_id is not None:
         query = text(
@@ -154,7 +155,7 @@ def get_or_create_subject_key(conn, source_study,
         if result:
             return result[0]
 
-    # Fall back to scrno (T002's screen-failure identifier)
+    # Fall back to scrno (STUDY_A's screen-failure identifier)
     if scrno is not None:
         query = text(
             "SELECT subject_key FROM subjects"
@@ -185,7 +186,7 @@ def get_or_create_subject_key(conn, source_study,
 
 def load_subject_linkage(conn, df):
     """
-    Load the T002-T006 SUBJECT_LINKAGE EAV sheet into the dedicated
+    Load the STUDY_A-STUDY_C SUBJECT_LINKAGE EAV sheet into the dedicated
     subject_linkage table.
     """
 
@@ -193,23 +194,24 @@ def load_subject_linkage(conn, df):
 
     for record_id, g in df.groupby("record_id"):
         vals = dict(zip(g["SOURCE_VAR"], g["VALUE"]))
-        t006_key = conn.execute(
+        STUDY_C_key = conn.execute(
             text("SELECT subject_key FROM subjects "
-                 "WHERE source_study='T006' AND subjid=:v"),
-            {"v": vals.get("t006_subjid")}).fetchone()
-        t002_key = conn.execute(
+                 "WHERE source_study='STUDY_C' AND subjid=:v"),
+            {"v": vals.get("STUDY_C_subjid")}).fetchone()
+        STUDY_A_key = conn.execute(
             text("SELECT subject_key FROM subjects "
-                 "WHERE source_study='T002' AND subjid=:v"),
-            {"v": vals.get("t002_subjid")}).fetchone()
+                 "WHERE source_study='STUDY_A' AND subjid=:v"),
+            {"v": vals.get("STUDY_C_subjid")}).fetchone()
         conn.execute(
             text("""
                 INSERT INTO subject_linkage
-                    (t002_subject_key, t006_subject_key, linkage_type)
+                    (STUDY_A_subject_key, STUDY_C_subject_key, linkage_type)
                 VALUES (:a, :b, :c)
-                ON CONFLICT (t002_subject_key, t006_subject_key) DO NOTHING
+                ON CONFLICT (STUDY_A_subject_key, STUDY_C_subject_key)
+                    DO NOTHING
             """),
-            {"a": t002_key[0] if t002_key else None,
-             "b": t006_key[0] if t006_key else None,
+            {"a": STUDY_A_key[0] if STUDY_A_key else None,
+             "b": STUDY_C_key[0] if STUDY_C_key else None,
              "c": vals.get("link_status")})
         inserted += 1
 

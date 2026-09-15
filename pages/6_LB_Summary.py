@@ -81,7 +81,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-study = st.selectbox("Study", ["T002", "T005", "T006"])
+study = st.selectbox("Study", ["STUDY_A", "STUDY_B", "STUDY_C"])
 
 with st.spinner("Loading lab flag data..."):
     df = run_query(
@@ -90,8 +90,8 @@ with st.spinner("Loading lab flag data..."):
     )
 
 if df.empty:
-    st.warning("No out-of-range lab results found. (T002 Only; LB is "
-               "not collected in T005 and T006) ")
+    st.warning("No out-of-range lab results found. (STUDY_A Only; LB is "
+               "not collected in STUDY_B and STUDY_C) ")
 else:
     flag = df["flag"].astype(str).str.strip().str.lower()
     high = df[flag == "high"]

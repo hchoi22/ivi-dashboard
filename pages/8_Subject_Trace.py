@@ -14,7 +14,7 @@ from auth_check import require_auth
 
 render_sidebar(current_page="Subject Trace")
 
-st.title("Cross-Study Subject Trace (T002 ↔ T006)")
+st.title("Cross-Study Subject Trace (STUDY_A ↔ STUDY_C)")
 require_auth()
 
 with st.spinner("Loading subject linkage data..."):
@@ -27,8 +27,8 @@ if linked.empty:
         "No cross-study linkage records found."
     )
 else:
-    selected_subjid = st.selectbox("Select subject (T002)",
-                                   linked["t002_subjid"])
+    selected_subjid = st.selectbox("Select subject (STUDY_A)",
+                                   linked["STUDY_A_subjid"])
 
     with st.spinner("Building subject timeline..."):
         profile = run_query(
