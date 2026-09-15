@@ -9,9 +9,9 @@ This ETL pipeline transforms three horizontally structured synthetic clinical da
 ```
 ┌───────────────────────────────────────────────────────────────────────┐
 │                        1. Raw Excel Files                             │
-│   • STUDY_A.xlsx                                                         │
-│   • STUDY_B.xlsx                                                         │
-│   • STUDY_C.xlsx.                                                        │
+│   • STUDY_A.xlsx                                                      │
+│   • STUDY_B.xlsx                                                      │
+│   • STUDY_C.xlsx.                                                     │
 └──────────────────────────────────┬────────────────────────────────────┘
                                    │
                                    ▼
