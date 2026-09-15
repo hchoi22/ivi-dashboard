@@ -1,0 +1,16 @@
+
+# Environment / secrets
+.env
+.streamlit/secrets.toml
+config.yaml
+
+# Virtual environment
+venv/
+__pycache__/
+
+# OS / editor cruft
+.DS_Store
+.vscode/
+
+# documents
+documents/
