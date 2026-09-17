@@ -47,9 +47,9 @@ CREATE TABLE ie (LIKE dm INCLUDING ALL);
 CREATE TABLE cm (LIKE dm INCLUDING ALL);
 CREATE TABLE eos (LIKE dm INCLUDING ALL);
 CREATE TABLE co (LIKE dm INCLUDING ALL); -- Comment
-CREATE TABLE ex (LIKE dm INCLUDING ALL); -- Exposure (T002 only)
-CREATE TABLE ae (LIKE dm INCLUDING ALL); -- AE+SOLAE+REACTOAE+SAE consolidated (T002 only)
-CREATE TABLE lb (LIKE dm INCLUDING ALL); -- Laboratory (T002 only)
+CREATE TABLE ex (LIKE dm INCLUDING ALL); -- Exposure (STUDY_A only)
+CREATE TABLE ae (LIKE dm INCLUDING ALL); -- AE+SOLAE+REACTOAE+SAE consolidated (STUDY_A only)
+CREATE TABLE lb (LIKE dm INCLUDING ALL); -- Laboratory (STUDY_A only)
 
 -- Indexes for common query patterns
 CREATE INDEX idx_dm_subject ON dm (subject_key);
@@ -101,22 +101,22 @@ CREATE INDEX idx_lb_var ON lb (standard_var);
 CREATE TABLE domain_registry (
     standard_domain VARCHAR(20) PRIMARY KEY,
     table_name VARCHAR(30) NOT NULL,
-    applies_to VARCHAR(30) NOT NULL -- e.g. 'T002,T005,T006' or 'T002 only'
+    applies_to VARCHAR(30) NOT NULL -- e.g. 'STUDY_A,STUDY_B,STUDY_C' or 'STUDY_A only'
 );
 
 INSERT INTO domain_registry VALUES
-('DM', 'dm', 'T002,T005,T006'),
-('DS', 'ds', 'T002,T005,T006'),
-('SV', 'sv', 'T002,T005,T006'),
-('MH', 'mh', 'T002,T005,T006'),
-('PE', 'pe', 'T002,T005,T006'),
-('VS', 'vs', 'T002,T005,T006'),
-('BE', 'be', 'T002,T005,T006'),
-('BS', 'bs', 'T002,T005,T006'),
-('IE', 'ie', 'T002,T005,T006'),
-('CM', 'cm', 'T002,T005,T006'),
-('EOS', 'eos', 'T002,T005,T006'),
-('CO', 'co', 'T002,T005,T006'),
-('EX', 'ex', 'T002 only'),
-('AE', 'ae', 'T002 only'),
-('LB', 'lb', 'T002 only');
+('DM', 'dm', 'STUDY_A,STUDY_B,STUDY_C'),
+('DS', 'ds', 'STUDY_A,STUDY_B,STUDY_C'),
+('SV', 'sv', 'STUDY_A,STUDY_B,STUDY_C'),
+('MH', 'mh', 'STUDY_A,STUDY_B,STUDY_C'),
+('PE', 'pe', 'STUDY_A,STUDY_B,STUDY_C'),
+('VS', 'vs', 'STUDY_A,STUDY_B,STUDY_C'),
+('BE', 'be', 'STUDY_A,STUDY_B,STUDY_C'),
+('BS', 'bs', 'STUDY_A,STUDY_B,STUDY_C'),
+('IE', 'ie', 'STUDY_A,STUDY_B,STUDY_C'),
+('CM', 'cm', 'STUDY_A,STUDY_B,STUDY_C'),
+('EOS', 'eos', 'STUDY_A,STUDY_B,STUDY_C'),
+('CO', 'co', 'STUDY_A,STUDY_B,STUDY_C'),
+('EX', 'ex', 'STUDY_A only'),
+('AE', 'ae', 'STUDY_A only'),
+('LB', 'lb', 'STUDY_A only');
