@@ -2,7 +2,7 @@
 
 ## 1. Introduction
 
-This ETL pipeline transforms three horizontally structured synthetic clinical data exports based on the IVI Vi-DT study, specifically STUDY_A, STUDY_B, and STUDY_C. It exports into a unified Entity-Attribute-Value (EAV) schema in Postgres, mapped to CDISC CDASHIG v2.3 and SDTMIG v3.4.
+This ETL pipeline transforms three horizontally-structured artificially generated clinical data exports based on the IVI Vi-DT study, specifically STUDY_A, STUDY_B, and STUDY_C. It exports into a unified Entity-Attribute-Value (EAV) schema in Postgres, mapped to CDISC CDASHIG v2.3 and SDTMIG v3.4.
 
 ## 2. Pipeline flow diagram.
 
@@ -59,7 +59,7 @@ For example, a lab result value maps to LBORRES under SDTMIG v3.4. As a sponsor-
 
 ## 5. Schema summary.
 
-The schema is separated into three kinds of tables: subjects, domain tables, and the linkage table. The subjects table holds all participants, each in their own row. The domain tables cover the rest of the synthetic clinical data, with each CDISC domain occupying one dedicated table. Lastly, the linkage table holds the linkage information between STUDY_A and STUDY_C. It uses a separate format, since it exists specifically to hold cross-study subject information rather than domain facts.
+The schema is separated into three kinds of tables: subjects, domain tables, and the linkage table. The subjects table holds all participants, each in their own row. The domain tables cover the rest of the artificially generated clinical data, with each CDISC domain occupying one dedicated table. Lastly, the linkage table holds the linkage information between STUDY_A and STUDY_C. It uses a separate format, since it exists specifically to hold cross-study subject information rather than domain facts.
 
 The subjects table holds one row per participant, keyed by a serial subject_key. This table stores all natural identifiers as columns, including source_study, studyid, subjid, scrno, and record_id. No single identifier is reliable across every study and visit, so there is no composite key. A composite key would require all of these identifiers to be present on every row, which the data doesn't support.
 
@@ -89,4 +89,4 @@ The third edge case comes from STUDY_C's structure, which differs completely fro
 
 ## 8. Data provenance/privacy note.
 
-All data referenced and processed by this pipeline is fully synthetic, generated to resemble the structure of IVI's Vi-DT clinical study exports (STUDY_A, STUDY_B, STUDY_C) without containing any real participant information. No real subject identifiers, dates, or clinical values are included in this repository or its outputs. Source files themselves are not included in this repository due to data-sharing restrictions; this documentation describes the transformation logic, schema design, and mapping approach rather than providing a runnable end-to-end example.
+All data referenced and processed by this pipeline is fully artificially generated, resembling the structure of IVI's Vi-DT clinical study exports (STUDY_A, STUDY_B, STUDY_C) without containing any real participant information. No real subject identifiers, dates, or clinical values are included in this repository or its outputs. Source files themselves are not included in this repository due to data-sharing restrictions; this documentation describes the transformation logic, schema design, and mapping approach rather than providing a runnable end-to-end example.

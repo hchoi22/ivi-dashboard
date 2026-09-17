@@ -1,6 +1,6 @@
 # CDISC-mapped Vi-DT Dashboard
 
-This project is a Streamlit dashboard for exploring CDISC-mapped synthetic clinical trial data across STUDY_A, STUDY_B, and STUDY_C. It's part of the clinical data mapping project for internal IVI clinical trials, and it demonstrates EAV-to-relational querying and cross-study analysis.
+This project is a Streamlit dashboard for exploring CDISC-mapped artificially generated clinical trial data across STUDY_A, STUDY_B, and STUDY_C. It's part of the clinical data mapping project for internal IVI clinical trials, and it demonstrates EAV-to-relational querying and cross-study analysis.
 
 ## 1. Pages Overview
 
@@ -37,7 +37,7 @@ Access control follows the same one-place-to-fix philosophy. Every page calls re
 
 ## 4. Data Disclaimer
 
-All data referenced and processed by this pipeline and dashboard is fully synthetic, generated to resemble the structure of IVI's Vi-DT clinical study exports (STUDY_A, STUDY_B, STUDY_C) without containing any real participant information. No real subject identifiers, dates, or clinical values are included in this repository or its outputs. Source files themselves are not included in this repository due to data-sharing restrictions; this documentation describes the transformation logic, schema design, and mapping approach rather than providing a runnable end-to-end example.
+All data referenced and processed by this pipeline and dashboard is fully artificially generated, resemblling the structure of IVI's Vi-DT clinical study exports (STUDY_A, STUDY_B, STUDY_C) without containing any real participant information. No real subject identifiers, dates, or clinical values are included in this repository or its outputs. Source files themselves are not included in this repository due to data-sharing restrictions; this documentation describes the transformation logic, schema design, and mapping approach rather than providing a runnable end-to-end example.
 
 ## 5. Known Limitations / Next Steps
 
